@@ -1,6 +1,7 @@
 local state = require("gitlab.state")
 local reviewer = require("gitlab.reviewer")
 local git = require("gitlab.git")
+local jj = require("gitlab.jj")
 local u = require("gitlab.utils")
 local M = {}
 
@@ -31,6 +32,12 @@ M.choose_merge_request = function(opts)
     end
 
     if choice.source_branch ~= git.get_current_branch() then
+      if jj.is_jj_repo() then
+        local _, snapshot_err = jj.snapshot_changes()
+        if snapshot_err ~= nil then
+          return
+        end
+      end
       local has_clean_tree, clean_tree_err = git.has_clean_tree()
       if clean_tree_err ~= nil then
         return
